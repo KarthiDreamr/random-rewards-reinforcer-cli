@@ -1,0 +1,9 @@
+# Go build artifacts
+random-rewards-reinforcer
+reward-timer
+*.exe
+*.test
+*.out
+
+# Editor/OS
+.DS_Store
