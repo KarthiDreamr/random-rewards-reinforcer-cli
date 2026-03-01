@@ -43,7 +43,14 @@ func main() {
 
 	waitDuration := randomDuration(cfg.minMinutes, cfg.maxMinutes, cfg.testMode)
 
-	printMsg(colorCyan, "⏱️", fmt.Sprintf("Timer set for %s", formatDuration(waitDuration, cfg.testMode)))
+	// Show the mystery message without revealing the exact timer duration
+	unit := "minutes"
+	if cfg.testMode {
+		unit = "seconds"
+	}
+	printMsg(colorCyan, "🎯", "Random Rewards Reinforcer started")
+	printMsg(colorGreen, "🎁", fmt.Sprintf("Schrodinger reward arrives between %d-%d %s", cfg.minMinutes, cfg.maxMinutes, unit))
+	printMsg(colorYellow, "🛑", "Press Ctrl+C to stop.")
 
 	startTime := time.Now()
 
@@ -65,6 +72,7 @@ func main() {
 		case <-ticker.C:
 			printElapsed(startTime, cfg.testMode)
 		case <-time.After(waitDuration - time.Since(startTime)):
+			fmt.Printf("\n") // New line after elapsed time
 			printMsg(colorGreen, "🎵", "Time's up!")
 			if err := playAudio(ctx, cfg.audioPath, cfg.player); err != nil {
 				printMsg(colorRed, "🔇", fmt.Sprintf("Audio failed: %v", err))
@@ -72,13 +80,6 @@ func main() {
 			return
 		}
 	}
-}
-
-func formatDuration(d time.Duration, testMode bool) string {
-	if testMode {
-		return fmt.Sprintf("%.0f seconds", d.Seconds())
-	}
-	return fmt.Sprintf("%.0f minutes", d.Minutes())
 }
 
 func printElapsed(startTime time.Time, testMode bool) {
