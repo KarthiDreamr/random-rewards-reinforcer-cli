@@ -27,6 +27,28 @@ go build -o rrr
 sudo mv rrr /usr/local/bin/
 ```
 
+### Build & Install (latest from this repo)
+
+Build the binary (any name is fine):
+
+```bash
+go build -o random-rewards-reinforcer
+```
+
+**User install** (no sudo; ensure `~/.local/bin` is in your PATH):
+
+```bash
+cp random-rewards-reinforcer ~/.local/bin/
+```
+
+**System-wide install** as `rrr`:
+
+```bash
+sudo cp random-rewards-reinforcer /usr/local/bin/rrr
+```
+
+**Using an alias:** If you use `rrr` as a shell alias, you don't need to build the binary with the name `rrr`. Build with any name (e.g. `random-rewards-reinforcer`), install it, and point your alias to that path—e.g. `alias rrr='random-rewards-reinforcer'` or `alias rrr='~/.local/bin/random-rewards-reinforcer'`.
+
 ### Quick Install
 
 ```bash
