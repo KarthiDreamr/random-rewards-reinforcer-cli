@@ -41,29 +41,55 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	unit := "minutes"
+	waitDuration := randomDuration(cfg.minMinutes, cfg.maxMinutes, cfg.testMode)
+
+	printMsg(colorCyan, "⏱️", fmt.Sprintf("Timer set for %s", formatDuration(waitDuration, cfg.testMode)))
+
+	startTime := time.Now()
+
+	// Wait in a loop, printing elapsed time
+	var ticker *time.Ticker
 	if cfg.testMode {
-		unit = "seconds"
+		ticker = time.NewTicker(1 * time.Second)
+	} else {
+		ticker = time.NewTicker(1 * time.Minute)
 	}
-	printMsg(colorCyan, "🎯", fmt.Sprintf("Random Rewards Reinforcer started (%d-%d %s)", cfg.minMinutes, cfg.maxMinutes, unit))
-	printMsg(colorGreen, "💻", "Focus on your work. Reward alert will surprise you.")
-	printMsg(colorYellow, "🛑", "Press Ctrl+C to stop.")
+	defer ticker.Stop()
 
-	for cycle := 1; ; cycle++ {
-		waitDuration := randomDuration(cfg.minMinutes, cfg.maxMinutes, cfg.testMode)
+	printElapsed(startTime, cfg.testMode)
 
+	for {
 		select {
 		case <-ctx.Done():
-			printMsg(colorYellow, "👋", "Stopped. Nice work today.")
 			return
-		case <-time.After(waitDuration):
-			printMsg(colorGreen, "📺", fmt.Sprintf("Cycle %d reward unlocked! Enjoy your episode.", cycle))
+		case <-ticker.C:
+			printElapsed(startTime, cfg.testMode)
+		case <-time.After(waitDuration - time.Since(startTime)):
+			printMsg(colorGreen, "🎵", "Time's up!")
 			if err := playAudio(ctx, cfg.audioPath, cfg.player); err != nil {
 				printMsg(colorRed, "🔇", fmt.Sprintf("Audio failed: %v", err))
 			}
-			printMsg(colorCyan, "⚙️", "Back to deep work until the next surprise reward.")
+			return
 		}
 	}
+}
+
+func formatDuration(d time.Duration, testMode bool) string {
+	if testMode {
+		return fmt.Sprintf("%.0f seconds", d.Seconds())
+	}
+	return fmt.Sprintf("%.0f minutes", d.Minutes())
+}
+
+func printElapsed(startTime time.Time, testMode bool) {
+	elapsed := time.Since(startTime)
+	if testMode {
+		fmt.Printf("\r%s⏰ %5.0f seconds %s", colorCyan, elapsed.Seconds(), colorReset)
+	} else {
+		minutes := int(elapsed.Minutes())
+		fmt.Printf("\r%s⏰ %5d minutes %s", colorCyan, minutes, colorReset)
+	}
+	os.Stdout.Sync()
 }
 
 func printMsg(color, emoji, message string) {
