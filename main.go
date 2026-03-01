@@ -41,7 +41,8 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	waitDuration := randomDuration(cfg.minMinutes, cfg.maxMinutes, cfg.testMode)
+	rewardDuration := randomDuration(cfg.minMinutes, cfg.maxMinutes, cfg.testMode)
+	hintDuration := getHintTime(rewardDuration, cfg.testMode)
 
 	// Show the mystery message without revealing the exact timer duration
 	unit := "minutes"
@@ -65,13 +66,25 @@ func main() {
 
 	printElapsed(startTime, cfg.testMode)
 
+	hintShown := false
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			printElapsed(startTime, cfg.testMode)
-		case <-time.After(waitDuration - time.Since(startTime)):
+			// Show hint at the hint time
+			if !hintShown && time.Since(startTime) >= hintDuration {
+				hintShown = true
+				fmt.Printf("\n") // New line before hint
+				parityMsg := "ODD"
+				if getRewardMinute(rewardDuration, cfg.testMode)%2 == 0 {
+					parityMsg = "EVEN"
+				}
+				printMsg(colorCyan, "💡", fmt.Sprintf("Hint: Reward will arrive at an %s minute!", parityMsg))
+			}
+		case <-time.After(rewardDuration - time.Since(startTime)):
 			fmt.Printf("\n") // New line after elapsed time
 			printMsg(colorGreen, "🎵", "Time's up!")
 			if err := playAudio(ctx, cfg.audioPath, cfg.player); err != nil {
@@ -80,6 +93,26 @@ func main() {
 			return
 		}
 	}
+}
+
+func getRewardMinute(duration time.Duration, testMode bool) int {
+	if testMode {
+		return int(duration.Seconds())
+	}
+	return int(duration.Minutes())
+}
+
+func getHintTime(rewardDuration time.Duration, testMode bool) time.Duration {
+	rewardMinute := getRewardMinute(rewardDuration, testMode)
+	if rewardMinute <= 1 {
+		return time.Duration(0)
+	}
+	// Random hint time between 0 and reward minute (exclusive of reward minute)
+	hintMinute := rand.IntN(rewardMinute)
+	if testMode {
+		return time.Duration(hintMinute) * time.Second
+	}
+	return time.Duration(hintMinute) * time.Minute
 }
 
 func printElapsed(startTime time.Time, testMode bool) {
