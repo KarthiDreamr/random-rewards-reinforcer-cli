@@ -10,6 +10,7 @@ A simple, elegant Go CLI timer that plays a reward song after a **mysterious ran
 
 - 🎲 **Mystery Timer**: Set a random interval (default 20-35 minutes) but DON'T KNOW the exact duration
 - ⏰ **Elapsed Time Only**: Watch elapsed time update in real-time on the same line (no countdown spoilers!)
+- 💡 **Mystery Hint**: At a random point before the reward, get a clue—whether it arrives at an ODD or EVEN minute
 - 🎵 **Custom Audio**: Play any MP3 file when the reward arrives
 - ⚡ **Lightweight**: Fast, minimal CLI with no dependencies
 - 🧪 **Test Mode**: Use seconds instead of minutes for quick testing
@@ -102,11 +103,15 @@ Press `Ctrl+C` to stop the timer at any time.
 ⏰     1 minutes
 ⏰     2 minutes
 ...
+⏰     8 minutes
+💡 Hint: Reward will arrive at an EVEN minute!
+⏰     9 minutes
+...
 ⏰    23 minutes
 🎵 Time's up!
 ```
 
-**Note:** You only see elapsed time, never the remaining time. The mystery is maintained throughout!
+**Note:** You only see elapsed time, never the remaining time. The mystery is maintained throughout! At a random point before the reward, you'll get a hint about whether the final minute is odd or even.
 
 ## Requirements
 
@@ -140,16 +145,20 @@ To use a different default audio file, modify the `defaultAudioPath` constant in
 
 ## How It Works
 
-1. On startup, a random duration is calculated between `-min` and `-max` (kept secret!)
-2. Display messages show the bounds but not the exact timer
-3. A timer begins, displaying **only elapsed time** that updates every minute (or second in test mode)
-4. Elapsed time is displayed with a carriage return (`\r`), updating in place
-5. When the timer completes, the audio file is played
-6. The program exits
+1. On startup, a random **reward time** is calculated between `-min` and `-max` (kept secret!)
+2. A second random **hint time** is generated (between 0 and the reward time)
+3. Display messages show the bounds but not the exact timer
+4. A timer begins, displaying **only elapsed time** that updates every minute (or second in test mode)
+5. At the **hint time**, a clue appears: whether the reward arrives at an ODD or EVEN minute
+6. Elapsed time is displayed with a carriage return (`\r`), updating in place
+7. When the timer completes, the audio file is played
+8. The program exits
 
 ## The Philosophy Behind It
 
 Schrödinger's reward: Until the audio plays, you exist in a superposition of states—it could arrive now, or in 35 minutes. This uncertainty keeps you engaged without the anxiety of watching a countdown. Focus on your work, not the clock.
+
+The **mystery hint** adds another layer—you'll get one strategic piece of information (odd or even) at an unpredictable time, giving you just enough hope to keep going without spoiling the surprise.
 
 ## Contributing
 
